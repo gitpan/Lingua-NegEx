@@ -1,0 +1,6 @@
+Revision history for Perl extension Lingua::NegEx.
+
+0.01  Wed Feb 27 20:06:16 2013
+	- original version; created by h2xs 1.23 with options
+		-AX Lingua::NegEx
+
