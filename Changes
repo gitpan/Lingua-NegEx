@@ -5,3 +5,5 @@ Revision history for Perl extension Lingua::NegEx.
 		-AX Lingua::NegEx
 0.02  Fri Mar 01 10::00 2013
 	- add lc to text; added s/\W// to text; updated POD;
+0.03  Fri Mar 01 22:00 2013
+	- fixed EXPORT POD;

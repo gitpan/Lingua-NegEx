@@ -13,7 +13,7 @@ BEGIN {
     negation_scope	
   );
 }
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 our (
   $pseudo_negation_phrases, $negation_phrases,
   $post_negation_phrases, $conjunctions,
@@ -390,7 +390,7 @@ This is a near literal translation from the java code authored by Junebae Kye ma
 
 The $Lingua::NegEx::value flag can be set to 0 to have the function return -2 for post negation phrases.
 
-EXPORT
+=head1 EXPORT
 
 negation_scope( $text );
 
