@@ -13,16 +13,16 @@ BEGIN {
     negation_scope	
   );
 }
-our $VERSION = '0.01';
-
+our $VERSION = '0.02';
 our (
   $pseudo_negation_phrases, $negation_phrases,
-  $post_negation_phrases, $conjunctions
+  $post_negation_phrases, $conjunctions,
 );
+our $value = 1;
 
 sub negation_scope {
-  my $text = shift;
-  my $string = [ ( split /\s/, $text ) ];
+  my $text = lc shift;
+  my $string = [ map { s/\W//; $_; } ( split /\s/, $text ) ];
   return helper( $string, 0 );
 }
 
@@ -51,7 +51,7 @@ sub helper {
                 } else {
 
                   if ( $indexIII > $word_count - 1 ) {
-                    if ( 1 ) {   # $boolean_value
+                    if ( $value ) { 
                       return "0 - " . ( $indexIII - 2 );
                     } else {
                       return "-2";
@@ -81,7 +81,8 @@ sub contains {
   foreach my $token ( @$target_list ) {
     my $element = [ ( split /\s/, $token ) ];
     if ( scalar( @$element ) == 1 ) {
-          if ( @$string[ $index ] eq @$element[0] ) {
+#print " @$string[ $index ] eq @$element[0] \n";
+         if ( @$string[ $index ] eq @$element[0] ) {
             return $index + 1;
           }
     } else {
@@ -383,6 +384,12 @@ Lingua::NegEx - Perl extension for finding negated phrases in text.
 
 This is a perl implementation of Wendy Chapman's NegEx algorithm which uses a list of phrases to determine whether clinical conditions are negated in a sentence. 
 
+The one exported function, negation_scope(), takes a sentence as input and re2urns '-1' if no negation is found or returns the range of word indices that make up the scope of the negation.
+
+This is a near literal translation from the java code authored by Junebae Kye made available online with two explicit additions: 1) the input text is forced into lowercase here 2) non-word characters are stripped from the input text as well. 
+
+The $Lingua::NegEx::value flag can be set to 0 to have the function return -2 for post negation phrases.
+
 EXPORT
 
 negation_scope( $text );
@@ -393,7 +400,9 @@ The NegEx documentation and downloads for java implementation can be found here:
 
 http://code.google.com/p/negex/
 
-The one exported function, negation_scope(), takes a sentence as inuput and returns '-1' if no negation is found or returns the index of the words that make up the scope of the negation.
+Background information:
+
+http://www.ncbi.nlm.nih.gov/pubmed?cmd=Retrieve&db=PubMed&dopt=AbstractPlus&list_uids=12123149
 
 =head1 AUTHOR
 
