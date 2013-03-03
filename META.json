@@ -1,5 +1,5 @@
 {
-   "abstract" : "Perl extension for finding negated phrases in text.",
+   "abstract" : "Perl extension for finding negated phrases in text and identifying the scope of negation.",
    "author" : [
       "Eduardo Iturrate <ed@iturrate.com>"
    ],
@@ -35,5 +35,5 @@
       }
    },
    "release_status" : "stable",
-   "version" : "0.03"
+   "version" : "0.04"
 }

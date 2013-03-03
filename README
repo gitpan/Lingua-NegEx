@@ -1,7 +1,7 @@
 Lingua-NegEx version 0.01
 =========================
 
-This module implements the NegEx algorithm authored by Wendy Chapman in perl. Info available at:
+This module implements Wendy Chapman's NegEx algorithm in perl. Info available at:
 
 http://code.google.com/p/negex/
 

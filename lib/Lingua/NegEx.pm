@@ -6,14 +6,14 @@ use warnings;
 
 require Exporter;
 
-our (@ISA,@EXPORT);
+our (@ISA,@EXPORT,$VERSION);
 BEGIN {
   @ISA = qw(Exporter);
+  $VERSION = '0.04';
   @EXPORT = qw(
     negation_scope	
   );
 }
-our $VERSION = '0.03';
 our (
   $pseudo_negation_phrases, $negation_phrases,
   $post_negation_phrases, $conjunctions,
@@ -371,7 +371,7 @@ __END__
 
 =head1 NAME
 
-Lingua::NegEx - Perl extension for finding negated phrases in text.
+Lingua::NegEx - Perl extension for finding negated phrases in text and identifying the scope of negation.
 
 =head1 SYNOPSIS
 
@@ -382,9 +382,9 @@ Lingua::NegEx - Perl extension for finding negated phrases in text.
 
 =head1 DESCRIPTION
 
-This is a perl implementation of Wendy Chapman's NegEx algorithm which uses a list of phrases to determine whether clinical conditions are negated in a sentence. 
+This is a perl implementation of Wendy Chapman's NegEx algorithm which uses a list of phrases to determine if a negation exists in a sentence and to identify the scope of the given negation. 
 
-The one exported function, negation_scope(), takes a sentence as input and re2urns '-1' if no negation is found or returns the range of word indices that make up the scope of the negation.
+The one exported function, negation_scope(), takes a sentence as input and returns '-1' if no negation is found or returns the range of word indices that make up the scope of the negation.
 
 This is a near literal translation from the java code authored by Junebae Kye made available online with two explicit additions: 1) the input text is forced into lowercase here 2) non-word characters are stripped from the input text as well. 
 
@@ -393,6 +393,7 @@ The $Lingua::NegEx::value flag can be set to 0 to have the function return -2 fo
 =head1 EXPORT
 
 negation_scope( $text );
+# returns -1 if no negation or /\d - \d/ which is the scope of negation 
 
 =head1 SEE ALSO
 

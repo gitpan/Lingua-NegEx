@@ -1,5 +1,5 @@
 ---
-abstract: 'Perl extension for finding negated phrases in text.'
+abstract: 'Perl extension for finding negated phrases in text and identifying the scope of negation.'
 author:
   - 'Eduardo Iturrate <ed@iturrate.com>'
 build_requires:
@@ -18,4 +18,4 @@ no_index:
     - t
     - inc
 requires: {}
-version: 0.03
+version: 0.04
