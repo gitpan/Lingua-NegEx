@@ -6,115 +6,99 @@ use warnings;
 
 require Exporter;
 
-our (@ISA,@EXPORT,$VERSION);
+our (@ISA,@EXPORT,$VERSION,$phrase);
 BEGIN {
   @ISA = qw(Exporter);
-  $VERSION = '0.04';
+  $VERSION = '0.05';
   @EXPORT = qw(
     negation_scope	
   );
 }
-our (
-  $pseudo_negation_phrases, $negation_phrases,
-  $post_negation_phrases, $conjunctions,
-);
-our $value = 1;
+
+####################################################################################
 
 sub negation_scope {
   my $text = lc shift;
-  my $string = [ map { s/\W//; $_; } ( split /\s/, $text ) ];
-  return helper( $string, 0 );
+  $text =~ s/\s+/ /;
+  my $string = [ ( map { s/\W//; $_; } split /\s/, $text ) ];
+  return word_iterator( $string, 0 );
 }
 
-sub helper {
+####################################################################################
+
+sub word_iterator {
   my ($string,$index) = @_;
   my $word_count = scalar( @$string );
-
   if ( $index < $word_count  ) {
     for ( my $i = $index; $i < $word_count; $i++ ) {
-      my $indexII =  contains( $string, $pseudo_negation_phrases, $i, 0 );
-
-      if ( $indexII != -1 ) {
-          return helper($string, $indexII );
-
+      my $pseudo_index =  contains_at_index( $string, $phrase->{pseudo}, $i );
+      if ( $pseudo_index ) {
+          return word_iterator( $string, $pseudo_index );
       } else {
-          my $indexIII = contains( $string, $negation_phrases, $i, 0 );
-          if ( $indexIII != -1 ) {
-              my $indexIV = -1;
-              for ( my $j = $indexIII; $j < $word_count; $j++ ) {
-                            $indexIV = contains( $string, $conjunctions, $j, 1 );
-
-                            last if $indexIV != -1;
-                }
-                if ( $indexIV != -1 ) {
-                            return $indexIII . " - " . $indexIV;
+          my $negation_index = contains_at_index( $string, $phrase->{negation}, $i );
+          if ( $negation_index ) {
+              my $conjunction_index = 0;
+              for ( my $j = $negation_index; $j < $word_count; $j++ ) {
+                $conjunction_index = contains_at_index( $string, $phrase->{conjunctions}, $j );
+                last if $conjunction_index;
+              }
+              if ( $conjunction_index ) {
+                return $negation_index . " - " . $conjunction_index;
+              } else {
+                if ( $negation_index >= $word_count - 1 ) {
+                    return "0 - " . ( $word_count - 1 );
                 } else {
-
-                  if ( $indexIII > $word_count - 1 ) {
-                    if ( $value ) { 
-                      return "0 - " . ( $indexIII - 2 );
-                    } else {
-                      return "-2";
-                    }
-                  } else {
-                    return$indexIII . " - " . ( $word_count - 1 );
-                  }
+                    return $negation_index . " - " . ( $word_count - 1 );
                 }
-
+              }
           } else {
-                my $indexV = contains( $string, $post_negation_phrases, $i , 1 );
-                return "0 - " . $indexV if ( $indexV != -1 );
+                my $post_index = contains_at_index( $string, $phrase->{post}, $i );
+                return "0 - " . $post_index unless $post_index == 0;
           }
       }
     }
   }
-  return "-1";
+  return "0";
 }
 
-
-# returns index of negation phrase if any negation phrase is found in a sentence
-#       returns -1 if no negation phrase is found
-sub contains {
-  my ($string, $target_list, $index, $type ) = @_;
-  my $counts = 0;
-  my $word_count = scalar( @$string );
-  foreach my $token ( @$target_list ) {
-    my $element = [ ( split /\s/, $token ) ];
-    if ( scalar( @$element ) == 1 ) {
-#print " @$string[ $index ] eq @$element[0] \n";
-         if ( @$string[ $index ] eq @$element[0] ) {
+sub contains_at_index {
+  my ($string, $phrase_list, $index) = @_;
+  my $word_count = scalar @$string;
+  foreach my $phrase ( @$phrase_list ) {
+    my @words = ( map { s/\W//; $_ }  split /\s/, $phrase );
+    if ( scalar @words == 1 ) {
+         if ( @$string[$index] eq $words[0] ) {
             return $index + 1;
           }
+ 
     } else {
-          my $firstWord = '';
-          if ( (scalar( @$string ) - $index) >= scalar( @$element ) ) {
-                $firstWord = @$string[ $index ];
-          }
-          if ( $firstWord eq @$element[0] ) {
-                $counts++;
-                for ( my $i = 1; $i < scalar( @$element ); $i++ ) {
-                  if ( @$string[ $index + $i ] eq @$element[ $i ] )  {
-                            $counts++;
-                  } else {
-                            $counts = 0;
-                            #last;
-                  }
-                  if ( $counts == scalar( @$element ) ) {
-                        if ( $type == 0 ) {
-                          return $index + $i + 1;
-                        } else {
-                          return $index;
-                        }
-                  }
-                }
-          }
+	my $counts = 0;  
+        if ( ($word_count - $index) >= scalar @words ) {
+           if ( @$string[$index] eq $words[0] ) {
+             $counts++;
+             for ( my $i = 1; $i < scalar @words; $i++ ) {
+               if ( @$string[ $index + $i ] eq $words[$i] )  {
+                 $counts++;
+               } else {
+                 $counts = 0;
+                 last;
+               }
+               if ( $counts == scalar @words ) {
+                   return $index + $i + 1;
+               }
+	     }
+	   }
+         }
+
     }
   }
-  return -1;
+  return 0;
 }
 
+####################################################################################
 
-$pseudo_negation_phrases = [
+$phrase = {
+  pseudo => [
         "no increase",
         "no change",
         "no suspicious change",
@@ -131,9 +115,8 @@ $pseudo_negation_phrases = [
         "without difficulty",
         "not necessarily",
         "not only",
-];
-
-$negation_phrases = [
+  ],
+  negation => [
         "absence of",
         "cannot see",
         "cannot",
@@ -261,9 +244,9 @@ $negation_phrases = [
         "sufficient to rule the patient out against",
         "sufficient to rule the patient out",
         "what must be ruled out is",
-];
+  ],
 
-$post_negation_phrases = [
+  post => [
         "should be ruled out for",
         "ought to be ruled out for",
         "may be ruled out for",
@@ -292,9 +275,9 @@ $post_negation_phrases = [
         "must be ruled out",
         "is to be ruled out",
         "be ruled out",
-];
+  ],
 
-$conjunctions = [
+  conjunctions => [
         "but",
         "however",
         "nevertheless",
@@ -364,7 +347,9 @@ $conjunctions = [
         "origins of",
         "origins for",
         "other possibilities of",
-];
+  ],
+};
+
 
 1;
 __END__
@@ -380,20 +365,22 @@ Lingua::NegEx - Perl extension for finding negated phrases in text and identifyi
   my $scope = negation_scope( 'There is no pulmonary embolism.' );
   print $scope; # prints '3 - 4'
 
+  my $scope = negation_scope( 'fever, cough, and pain denied.' );
+  print $scope; # prints '0 - 3'
+
+
 =head1 DESCRIPTION
 
 This is a perl implementation of Wendy Chapman's NegEx algorithm which uses a list of phrases to determine if a negation exists in a sentence and to identify the scope of the given negation. 
 
-The one exported function, negation_scope(), takes a sentence as input and returns '-1' if no negation is found or returns the range of word indices that make up the scope of the negation.
+The one exported function, negation_scope(), takes a sentence as input and returns '0' if no negation is found or returns the range of word indices that make up the scope of the negation.
 
-This is a near literal translation from the java code authored by Junebae Kye made available online with two explicit additions: 1) the input text is forced into lowercase here 2) non-word characters are stripped from the input text as well. 
-
-The $Lingua::NegEx::value flag can be set to 0 to have the function return -2 for post negation phrases.
+This is a port from the java code authored by Junebae Kye made available online. I've changed variable names and tried to improve readability of the original code. A couple of deviations from the original: 1) input text is forced into lowercase 2) non-word characters are stripped from the input text as well (non-word characters are also stripped from phrases so they can still match) 3) eliminated '-2' as an output for pre phrases being found in last position of a string, here this returns "0 - $last_position". 
 
 =head1 EXPORT
 
 negation_scope( $text );
-# returns -1 if no negation or /\d - \d/ which is the scope of negation 
+# returns 0 if no negation or /\d - \d/ which is the scope of negation 
 
 =head1 SEE ALSO
 

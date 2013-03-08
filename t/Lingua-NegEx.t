@@ -8,4 +8,4 @@ BEGIN { use_ok('Lingua::NegEx') };
 
 #########################
 
-ok( negation_scope( 'foo' ), 'something wrong with negation scope' );
+ok( negation_scope( 'there is no foo' ), 'something wrong with negation scope' );

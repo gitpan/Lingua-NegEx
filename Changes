@@ -9,3 +9,5 @@ Revision history for Perl extension Lingua::NegEx.
 	- fixed EXPORT POD;
 0.04  Sat Mar 02 20:00 2013
 	- fixed typos;
+0.05  Fri Mar 08 15:00 2013
+	- rewrote for readability
