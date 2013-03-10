@@ -4,7 +4,7 @@
 #########################
 
 use Test::More tests => 2;
-BEGIN { use_ok('Lingua::NegEx') };
+BEGIN { use_ok('Lingua::NegEx qw( negation_scope );') };
 
 #########################
 

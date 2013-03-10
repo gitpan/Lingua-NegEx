@@ -6,11 +6,11 @@ use warnings;
 
 require Exporter;
 
-our (@ISA,@EXPORT,$VERSION,$phrase);
+our (@ISA,@EXPORT_OK,$VERSION,$phrase);
 BEGIN {
   @ISA = qw(Exporter);
-  $VERSION = '0.05';
-  @EXPORT = qw(
+  $VERSION = '0.06';
+  @EXPORT_OK = qw(
     negation_scope	
   );
 }
@@ -67,29 +67,24 @@ sub contains_at_index {
   foreach my $phrase ( @$phrase_list ) {
     my @words = ( map { s/\W//; $_ }  split /\s/, $phrase );
     if ( scalar @words == 1 ) {
-         if ( @$string[$index] eq $words[0] ) {
-            return $index + 1;
-          }
+      return $index + 1 if @$string[ $index ] eq $words[0]; 
  
     } else {
-	my $counts = 0;  
-        if ( ($word_count - $index) >= scalar @words ) {
-           if ( @$string[$index] eq $words[0] ) {
-             $counts++;
-             for ( my $i = 1; $i < scalar @words; $i++ ) {
-               if ( @$string[ $index + $i ] eq $words[$i] )  {
-                 $counts++;
-               } else {
-                 $counts = 0;
-                 last;
-               }
-               if ( $counts == scalar @words ) {
-                   return $index + $i + 1;
-               }
-	     }
-	   }
-         }
-
+      my $counts = 0;  
+      if ( ($word_count - $index) >= scalar @words ) {
+        if ( @$string[$index] eq $words[0] ) {
+          $counts++;
+          for ( my $i = 1; $i < scalar @words; $i++ ) {
+            if ( @$string[ $index + $i ] eq $words[$i] )  {
+              $counts++;
+            } else {
+              $counts = 0;
+              last;
+            }
+            return $index + $i + 1 if $counts == scalar @words;
+	  }
+	}
+      }
     }
   }
   return 0;
@@ -360,7 +355,7 @@ Lingua::NegEx - Perl extension for finding negated phrases in text and identifyi
 
 =head1 SYNOPSIS
 
-  use Lingua::NegEx;
+  use Lingua::NegEx qw( negation_scope );
  
   my $scope = negation_scope( 'There is no pulmonary embolism.' );
   print $scope; # prints '3 - 4'
@@ -379,8 +374,8 @@ This is a port from the java code authored by Junebae Kye made available online.
 
 =head1 EXPORT
 
-negation_scope( $text );
-# returns 0 if no negation or /\d - \d/ which is the scope of negation 
+  negation_scope( $text );
+  # returns 0 if no negation or /\d - \d/ which is the scope of negation 
 
 =head1 SEE ALSO
 
