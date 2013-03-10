@@ -15,3 +15,5 @@ Revision history for Perl extension Lingua::NegEx.
 	- changed to EXPORT_OK; changed some if statements to postfix
 0.07  Sun Mar 10 2013
 	- now returns an array ref; edited POD
+0.08  Sun Mar 10 2013
+	- Perl::Critic
