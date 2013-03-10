@@ -9,7 +9,7 @@ require Exporter;
 our (@ISA,@EXPORT_OK,$VERSION,$phrase);
 BEGIN {
   @ISA = qw(Exporter);
-  $VERSION = '0.06';
+  $VERSION = '0.07';
   @EXPORT_OK = qw(
     negation_scope	
   );
@@ -35,30 +35,30 @@ sub word_iterator {
       if ( $pseudo_index ) {
           return word_iterator( $string, $pseudo_index );
       } else {
-          my $negation_index = contains_at_index( $string, $phrase->{negation}, $i );
-          if ( $negation_index ) {
-              my $conjunction_index = 0;
-              for ( my $j = $negation_index; $j < $word_count; $j++ ) {
-                $conjunction_index = contains_at_index( $string, $phrase->{conjunctions}, $j );
-                last if $conjunction_index;
-              }
-              if ( $conjunction_index ) {
-                return $negation_index . " - " . $conjunction_index;
-              } else {
-                if ( $negation_index >= $word_count - 1 ) {
-                    return "0 - " . ( $word_count - 1 );
-                } else {
-                    return $negation_index . " - " . ( $word_count - 1 );
-                }
-              }
-          } else {
-                my $post_index = contains_at_index( $string, $phrase->{post}, $i );
-                return "0 - " . $post_index unless $post_index == 0;
+        my $negation_index = contains_at_index( $string, $phrase->{negation}, $i );
+        if ( $negation_index ) {
+          my $conjunction_index = 0;
+          for ( my $j = $negation_index; $j < $word_count; $j++ ) {
+            $conjunction_index = contains_at_index( $string, $phrase->{conjunctions}, $j );
+            last if $conjunction_index;
           }
+          if ( $conjunction_index ) {
+            return [ $negation_index, $conjunction_index ];
+          } else {
+            if ( $negation_index >= $word_count - 1 ) {
+              return [ 0,  ( $word_count - 1 ) ];
+            } else {
+              return [ $negation_index, ( $word_count - 1 ) ];
+            }
+          }
+        } else {
+          my $post_index = contains_at_index( $string, $phrase->{post}, $i );
+          return [ 0, $post_index ] if $post_index;
+        }
       }
     }
   }
-  return "0";
+  return;
 }
 
 sub contains_at_index {
@@ -87,7 +87,7 @@ sub contains_at_index {
       }
     }
   }
-  return 0;
+  return;
 }
 
 ####################################################################################
@@ -358,24 +358,23 @@ Lingua::NegEx - Perl extension for finding negated phrases in text and identifyi
   use Lingua::NegEx qw( negation_scope );
  
   my $scope = negation_scope( 'There is no pulmonary embolism.' );
-  print $scope; # prints '3 - 4'
+  print join ', ', @$scope; # '3, 4'
 
   my $scope = negation_scope( 'fever, cough, and pain denied.' );
-  print $scope; # prints '0 - 3'
-
+  print join ', ', @$scope; # '0, 3'
 
 =head1 DESCRIPTION
 
 This is a perl implementation of Wendy Chapman's NegEx algorithm which uses a list of phrases to determine if a negation exists in a sentence and to identify the scope of the given negation. 
 
-The one exported function, negation_scope(), takes a sentence as input and returns '0' if no negation is found or returns the range of word indices that make up the scope of the negation.
+The one exported function, negation_scope(), takes a sentence as input and returns '0' if no negation is found or returns an array reference with the range of word indices that make up the scope of the negation.
 
-This is a port from the java code authored by Junebae Kye made available online. I've changed variable names and tried to improve readability of the original code. A couple of deviations from the original: 1) input text is forced into lowercase 2) non-word characters are stripped from the input text as well (non-word characters are also stripped from phrases so they can still match) 3) eliminated '-2' as an output for pre phrases being found in last position of a string, here this returns "0 - $last_position". 
+This is a port from the java code authored by Junebae Kye made available online. I've refactored the original code in an effort to simplify and improve readability. A couple of substantive deviations from the original: 1) input text is forced into lowercase 2) non-word characters are stripped from the input text as well (non-word characters are also stripped from phrases so they can still match) 3) return value is now \@scope 4) eliminated '-2' as an output for pre phrases being found in last position of a string, here this returns [ 0, $last_position ]. 
 
 =head1 EXPORT
 
   negation_scope( $text );
-  # returns 0 if no negation or /\d - \d/ which is the scope of negation 
+  # returns 0 if no negation or [ $first_position, $last_position ] 
 
 =head1 SEE ALSO
 
