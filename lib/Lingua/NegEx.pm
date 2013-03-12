@@ -9,7 +9,7 @@ require Exporter;
 our (@ISA,@EXPORT_OK,$VERSION,$phrase);
 BEGIN {
   @ISA = qw(Exporter);
-  $VERSION = '0.08';
+  $VERSION = '0.09';
   @EXPORT_OK = qw(
     negation_scope	
   );
@@ -34,7 +34,7 @@ sub word_iterator {
   my ($string,$index) = @_;
   my $word_count = scalar @$string;
   if ( $index < $word_count  ) {
-    for ( my $i = $index; $i < $word_count; $i++ ) {
+    foreach my $i ( $index .. $#{ $string } ) {
       my $pseudo_index =  contains_at_index( $string, $phrase->{pseudo}, $i );
       if ( $pseudo_index ) {
           return word_iterator( $string, $pseudo_index );
@@ -42,7 +42,7 @@ sub word_iterator {
         my $negation_index = contains_at_index( $string, $phrase->{negation}, $i );
         if ( $negation_index ) {
           my $conjunction_index = 0;
-          for ( my $j = $negation_index; $j < $word_count; $j++ ) {
+          foreach my $j ( $negation_index .. $#{ $string } ) { 
             $conjunction_index = contains_at_index( $string, $phrase->{conjunctions}, $j );
             last if $conjunction_index;
           }
@@ -62,24 +62,28 @@ sub word_iterator {
       }
     }
   }
-  return;
+  return 0;
 }
 
 sub contains_at_index {
   my ($string, $phrase_list, $index) = @_;
   my $word_count = scalar @$string;
   foreach my $phrase ( @$phrase_list ) {
-    my @words = ( map { s/\W//xms; $_ }  split /\s/xms, $phrase );
+    my @words;
+    foreach ( split /\s/xms, $phrase ) {
+      s/\W//xms;
+      push @words, $_;
+    } 
     if ( scalar @words == 1 ) {
-      if ( @$string[ $index ] eq $words[0] ) {
+      if ( $$string[$index] eq $words[0] ) {
         return $index + 1;
       }
     } else {
       my $counts = 0;
       if ( ($word_count - $index) >= scalar @words ) {
-        if ( @$string[$index] eq $words[0] ) {
-          $counts++;
-          for ( my $i = 1; $i < scalar @words; $i++ ) {
+        if ( $$string[$index] eq $words[0] ) {
+          my $counts++;
+          foreach my $i ( 1 .. $#words ) {
             if ( @$string[ $index + $i ] eq $words[$i] )  {
               $counts++;
             } else {
@@ -94,7 +98,7 @@ sub contains_at_index {
       }
     }
   }
-  return;
+  return 0;
 }
 
 ####################################################################################
@@ -365,8 +369,11 @@ Lingua::NegEx - Perl extension for finding negated phrases in text and identifyi
   my $scope = negation_scope( 'There is no pulmonary embolism.' );
   print join ', ', @$scope; # '3, 4'
 
-  my $scope = negation_scope( 'fever, cough, and pain denied.' );
+  my $scope = negation_scope( 'Fever, cough, and pain denied.' );
   print join ', ', @$scope; # '0, 3'
+
+  my $scope = negation_scope( 'The patient reports crushing substernal chest pain' );
+  print $scope; # undef
 
 =head1 DESCRIPTION
 

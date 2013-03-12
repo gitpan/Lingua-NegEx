@@ -1,4 +1,4 @@
-Lingua-NegEx version 0.08
+Lingua-NegEx version 0.09
 =========================
 
 This module implements Wendy Chapman's NegEx algorithm in perl. Info available at:
