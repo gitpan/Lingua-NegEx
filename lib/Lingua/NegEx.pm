@@ -9,9 +9,9 @@ require Exporter;
 our (@ISA,@EXPORT_OK,$VERSION,$phrase);
 BEGIN {
   @ISA = qw(Exporter);
-  $VERSION = '0.09';
+  $VERSION = '0.10';
   @EXPORT_OK = qw(
-    negation_scope	
+    negation_scope
   );
 }
 
@@ -21,10 +21,10 @@ sub negation_scope {
   my $text = lc shift;
   $text =~ s/\s+/ /xms;
   my @string;
-  foreach ( split /\s/xms, $text ) { 
+  foreach ( split /\s/xms, $text ) {
     s/\W//gxms;
     push @string, $_;
-  } 
+  }
   return word_iterator( \@string, 0 );
 }
 
@@ -32,9 +32,9 @@ sub negation_scope {
 
 sub word_iterator {
   my ($string,$index) = @_;
-  my $word_count = scalar @$string;
+  my $word_count = scalar @{$string};
   if ( $index < $word_count  ) {
-    foreach my $i ( $index .. $#{ $string } ) {
+    foreach my $i ( $index .. $#{$string} ) {
       my $pseudo_index =  contains_at_index( $string, $phrase->{pseudo}, $i );
       if ( $pseudo_index ) {
           return word_iterator( $string, $pseudo_index );
@@ -42,7 +42,7 @@ sub word_iterator {
         my $negation_index = contains_at_index( $string, $phrase->{negation}, $i );
         if ( $negation_index ) {
           my $conjunction_index = 0;
-          foreach my $j ( $negation_index .. $#{ $string } ) { 
+          foreach my $j ( $negation_index .. $#{$string} ) {
             $conjunction_index = contains_at_index( $string, $phrase->{conjunctions}, $j );
             last if $conjunction_index;
           }
@@ -67,34 +67,33 @@ sub word_iterator {
 
 sub contains_at_index {
   my ($string, $phrase_list, $index) = @_;
-  my $word_count = scalar @$string;
-  foreach my $phrase ( @$phrase_list ) {
+  my $word_count = scalar @{$string};
+  foreach my $phrase ( @{$phrase_list} ) {
     my @words;
     foreach ( split /\s/xms, $phrase ) {
       s/\W//xms;
       push @words, $_;
-    } 
+    }
     if ( scalar @words == 1 ) {
-      if ( $$string[$index] eq $words[0] ) {
+      if ( ${$string}[$index] eq $words[0] ) {
         return $index + 1;
       }
     } else {
-      my $counts = 0;
-      if ( ($word_count - $index) >= scalar @words ) {
-        if ( $$string[$index] eq $words[0] ) {
-          my $counts++;
-          foreach my $i ( 1 .. $#words ) {
-            if ( @$string[ $index + $i ] eq $words[$i] )  {
-              $counts++;
-            } else {
-              $counts = 0;
-              last;
-            }
-            if ( $counts == scalar @words ) {
-              return $index + $i + 1;
-            }
-	  }
-	}
+      if ( ($word_count - $index) >= scalar @words
+        and ${$string}[$index] eq $words[0]
+      ) {
+        my $counts++;
+        foreach my $i ( 1 .. $#words ) {
+          if ( ${$string}[$index + $i] eq $words[$i] )  {
+            $counts++;
+          } else {
+            $counts = 0;
+            last;
+          }
+          if ( $counts == scalar @words ) {
+            return $index + $i + 1;
+          }
+        }
       }
     }
   }

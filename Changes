@@ -20,3 +20,5 @@ Revision history for Perl extension Lingua::NegEx.
 0.09  Mon Mar 11 2013
 	- got rid of complicated map {}; cleaned up nested loops.
 	- added no negation sample to pod
+0.10  Thu Mar 14 2013
+	- edited typos 
